@@ -95,3 +95,10 @@ Used ChatGPT for:
 3.Run Spring Boot application:
 
 mvn spring-boot:run   
+## 📦 Postman Collection
+
+Included in /postman directory for API testing.
+
+## 👨‍💻 Author Notes
+
+This system is designed to reflect real-world HR workflows in construction workforce management, focusing on correctness, resilience, and backend design clarity rather than UI complexity.
