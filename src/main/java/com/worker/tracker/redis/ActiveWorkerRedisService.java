@@ -10,8 +10,11 @@ import java.time.Duration;
 @Service
 public class ActiveWorkerRedisService {
 
-    @Autowired(required = false)
+    @Autowired
     private RedisTemplate<String, Object> redisTemplate;
+
+    private static final String ACTIVE_SET = "active:workers";
+    private static final String ACTIVE_DATA = "active:worker:data";
 
     private String key(Long workerId) {
         return "active:worker:" + workerId;
@@ -19,29 +22,35 @@ public class ActiveWorkerRedisService {
 
     public void clockIn(Long workerId, ActiveWorkerData data) {
 
-        if (redisTemplate == null) {
-            return;
-        }
-
         try {
+            // 1. Set active flag
+            redisTemplate.opsForSet().add(ACTIVE_SET, workerId);
+
+            // 2. Store worker data
+            redisTemplate.opsForHash().put(
+                    ACTIVE_DATA,
+                    workerId.toString(),
+                    data
+            );
+
+            // 3. TTL safety net (required by assignment)
             redisTemplate.opsForValue().set(
                     key(workerId),
                     data,
                     Duration.ofHours(16)
             );
-        } catch (Exception ignored) {
-        }
+
+        } catch (Exception ignored) {}
     }
 
     public ActiveWorkerData get(Long workerId) {
 
-        if (redisTemplate == null) {
-            return null;
-        }
-
         try {
-            return (ActiveWorkerData)
-                    redisTemplate.opsForValue().get(key(workerId));
+            Object obj = redisTemplate.opsForHash()
+                    .get(ACTIVE_DATA, workerId.toString());
+
+            return (ActiveWorkerData) obj;
+
         } catch (Exception e) {
             return null;
         }
@@ -49,25 +58,19 @@ public class ActiveWorkerRedisService {
 
     public void clockOut(Long workerId) {
 
-        if (redisTemplate == null) {
-            return;
-        }
-
         try {
+            redisTemplate.opsForSet().remove(ACTIVE_SET, workerId);
+            redisTemplate.opsForHash().delete(ACTIVE_DATA, workerId.toString());
             redisTemplate.delete(key(workerId));
-        } catch (Exception ignored) {
-        }
+
+        } catch (Exception ignored) {}
     }
 
     public boolean isActive(Long workerId) {
 
-        if (redisTemplate == null) {
-            return false;
-        }
-
         try {
             return Boolean.TRUE.equals(
-                    redisTemplate.hasKey(key(workerId))
+                    redisTemplate.opsForSet().isMember(ACTIVE_SET, workerId)
             );
         } catch (Exception e) {
             return false;
@@ -76,13 +79,8 @@ public class ActiveWorkerRedisService {
 
     public void invalidateWorker(Long workerId) {
 
-        if (redisTemplate == null) {
-            return;
-        }
-
         try {
-            redisTemplate.delete(key(workerId));
-        } catch (Exception ignored) {
-        }
+            clockOut(workerId);
+        } catch (Exception ignored) {}
     }
 }

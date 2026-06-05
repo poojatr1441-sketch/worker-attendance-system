@@ -13,53 +13,38 @@ import java.util.Set;
 @Service
 public class ActiveWorkerService {
 
-    @Autowired(required = false)
+    @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
     public List<ActiveWorkerResponse> getActiveWorkers() {
 
-        List<ActiveWorkerResponse> result =
-                new ArrayList<>();
-
-        if (redisTemplate == null) {
-            return result;
-        }
+        List<ActiveWorkerResponse> result = new ArrayList<>();
 
         try {
+            Set<Object> workerIds =
+                    redisTemplate.opsForSet().members("active:workers");
 
-            Set<String> keys =
-                    redisTemplate.keys("active:worker:*");
+            if (workerIds == null) return result;
 
-            if (keys == null) {
-                return result;
+            for (Object idObj : workerIds) {
+
+                Long workerId = Long.valueOf(idObj.toString());
+
+                Object obj = redisTemplate.opsForHash()
+                        .get("active:worker:data", workerId.toString());
+
+                if (obj == null) continue;
+
+                ActiveWorkerData data = (ActiveWorkerData) obj;
+
+                result.add(new ActiveWorkerResponse(
+                        workerId,
+                        data.getSiteId(),
+                        data.getClockInTime()
+                ));
             }
 
-            for (String key : keys) {
-
-                Object obj =
-                        redisTemplate.opsForValue().get(key);
-
-                if (obj == null) {
-                    continue;
-                }
-
-                ActiveWorkerData data =
-                        (ActiveWorkerData) obj;
-
-                Long workerId =
-                        Long.valueOf(key.split(":")[2]);
-
-                result.add(
-                        new ActiveWorkerResponse(
-                                workerId,
-                                data.getSiteId(),
-                                data.getClockInTime()
-                        )
-                );
-            }
-
-        } catch (Exception ignored) {
-        }
+        } catch (Exception ignored) {}
 
         return result;
     }
