@@ -99,6 +99,24 @@ Used ChatGPT for:
 
 Included in /postman directory for API testing.
 
+## 🧱 Guardrails I Used (AI / Logic Safety)
+
+1. Ensured overtime settlement is fully transactional to prevent partial updates.
+2. Used Redis only for active worker tracking, not as a database.
+3. System works even if Redis is down (graceful fallback).
+4. External API (wage multiplier) is called before DB transaction starts.
+5. Prevented duplicate clock-in without clock-out.
+6. Added TTL (16 hours) for stale active worker cleanup.
+7. Used pagination in log APIs to avoid large data loads.
+
+## ⚠️ Negative Prompting (What I avoided)
+1. No Redis used as primary data store
+2. No partial commits in settlement flow
+3. No SMS/notification inside loops or before commit
+4. No DB transactions during external API calls
+5. No unbounded queries (pagination enforced)
+6. Avoided N+1 query patterns in attendance logs
+
 ## HUMAN + BUSINESS CONTEXT
 REAL USERS:
 
