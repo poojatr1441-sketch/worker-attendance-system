@@ -112,7 +112,6 @@ BUSINESS RULES:
 - 60 hour monthly overtime cap
 - Redis can fail → system must still work
 - Settlement must be ALL OR NOTHING
-- 
 ## 👨‍💻 Author Notes
 
 This system is designed to reflect real-world HR workflows in construction workforce management, focusing on correctness, resilience, and backend design clarity rather than UI complexity.
