@@ -92,13 +92,27 @@ Used ChatGPT for:
 2. Start Redis locally:
    ```bash
    redis-server
-3.Run Spring Boot application:
-
-mvn spring-boot:run   
+3. Run Spring Boot application:
+   ```bash
+   mvn spring-boot:run   
 ## 📦 Postman Collection
 
 Included in /postman directory for API testing.
 
+## HUMAN + BUSINESS CONTEXT
+REAL USERS:
+
+- Site Worker → wants correct overtime payout SMS
+- Supervisor → tracks who is currently on-site
+- Payroll Team → depends on settlement accuracy
+
+BUSINESS RULES:
+
+- 8 hour shift standard
+- 60 hour monthly overtime cap
+- Redis can fail → system must still work
+- Settlement must be ALL OR NOTHING
+- 
 ## 👨‍💻 Author Notes
 
 This system is designed to reflect real-world HR workflows in construction workforce management, focusing on correctness, resilience, and backend design clarity rather than UI complexity.
